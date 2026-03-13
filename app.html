@@ -1,423 +1,626 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Daily Diary Generator</title>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg:#0f1117; --surface:#1a1d27; --card:#21253a; --border:#2e3350;
-    --accent:#5c6ef8; --accent2:#7c8aff; --text:#e8eaf6; --muted:#8890b0;
-    --success:#4caf82; --error:#ef5350; --radius:14px;
-  }
-  body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text);
-    min-height:100vh; display:flex; flex-direction:column; align-items:center;
-    padding:40px 20px 80px; }
-  header { text-align:center; margin-bottom:48px; }
-  header .badge { display:inline-block; background:rgba(92,110,248,.15); color:var(--accent2);
-    font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
-    padding:5px 14px; border-radius:999px; border:1px solid rgba(92,110,248,.3); margin-bottom:18px; }
-  header h1 { font-size:clamp(1.8rem,4vw,2.8rem); font-weight:700;
-    background:linear-gradient(135deg,#fff 30%,var(--accent2));
-    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1.2; }
-  header p { margin-top:12px; color:var(--muted); font-size:.95rem; max-width:480px; line-height:1.6; }
-  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
-    padding:32px; width:100%; max-width:640px; margin-bottom:24px;
-    box-shadow:0 8px 40px rgba(0,0,0,.4); }
-  .card h2 { font-size:1rem; font-weight:600; color:var(--accent2); margin-bottom:22px;
-    display:flex; align-items:center; gap:8px; }
-  .card h2 .step { display:inline-flex; align-items:center; justify-content:center;
-    width:26px; height:26px; border-radius:50%; background:rgba(92,110,248,.2);
-    color:var(--accent2); font-size:.8rem; font-weight:700; flex-shrink:0; }
-  .upload-area { border:2px dashed var(--border); border-radius:10px; padding:28px 20px;
-    text-align:center; cursor:pointer; transition:border-color .2s, background .2s;
-    position:relative; margin-bottom:16px; }
-  .upload-area:hover,.upload-area.dragover { border-color:var(--accent); background:rgba(92,110,248,.05); }
-  .upload-area input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; }
-  .upload-area .icon { font-size:2rem; margin-bottom:8px; }
-  .upload-area .label { font-size:.9rem; color:var(--muted); }
-  .upload-area .label strong { color:var(--accent2); }
-  .file-name { font-size:.82rem; color:var(--success); margin-top:6px; min-height:18px; }
-  .row { display:flex; gap:16px; }
-  .field { flex:1; display:flex; flex-direction:column; gap:6px; }
-  label { font-size:.82rem; color:var(--muted); font-weight:500; }
-  input[type=text] { background:var(--card); border:1px solid var(--border); border-radius:8px;
-    color:var(--text); font-family:inherit; font-size:.93rem; padding:10px 14px; outline:none;
-    transition:border-color .2s; }
-  input[type=text]:focus { border-color:var(--accent); }
-  button#generateBtn { width:100%; max-width:640px; padding:16px; font-family:inherit;
-    font-size:1rem; font-weight:600; color:#fff;
-    background:linear-gradient(135deg,var(--accent),var(--accent2)); border:none;
-    border-radius:var(--radius); cursor:pointer; transition:opacity .2s, transform .15s;
-    box-shadow:0 4px 20px rgba(92,110,248,.4); }
-  button#generateBtn:hover { opacity:.9; transform:translateY(-1px); }
-  button#generateBtn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
-  #status { max-width:640px; width:100%; margin-top:20px; padding:14px 18px;
-    border-radius:10px; font-size:.9rem; display:none; line-height:1.5; white-space:pre-line; }
-  #status.info    { background:rgba(92,110,248,.12); border:1px solid rgba(92,110,248,.3); color:var(--accent2); display:block; }
-  #status.success { background:rgba(76,175,130,.12); border:1px solid rgba(76,175,130,.3); color:var(--success); display:block; }
-  #status.error   { background:rgba(239,83,80,.12);  border:1px solid rgba(239,83,80,.3);  color:var(--error);   display:block; }
-  .footer { margin-top:60px; color:var(--muted); font-size:.8rem; text-align:center; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Diary Generator</title>
+    <!-- Use SheetJS for reading/writing Excel files in browser -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f9fafb;
+            --text-color: #111827;
+            --border-color: #e5e7eb;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        h1 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .instructions {
+            color: #4b5563;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .button {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+
+        .button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .button:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        #statusBox {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 6px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .status-error {
+            background-color: #fee2e2;
+            color: var(--error-color);
+            border: 1px solid #f87171;
+            display: block !important;
+        }
+
+        .status-success {
+            background-color: #d1fae5;
+            color: var(--success-color);
+            border: 1px solid #34d399;
+            display: block !important;
+        }
+        
+        .status-loading {
+            background-color: #e0e7ff;
+            color: var(--primary-color);
+            border: 1px solid #818cf8;
+            display: block !important;
+        }
+    </style>
 </head>
 <body>
-<header>
-  <div class="badge">🔬 Research Tool</div>
-  <h1>Daily Diary Generator</h1>
-  <p>Upload your two Excel datasets, enter your parameters, and download the Daily Diary — entirely in your browser, no installation required.</p>
-</header>
 
-<div class="card">
-  <h2><span class="step">1</span> Detailed Behaviour Dataset</h2>
-  <div class="upload-area" id="drop1">
-    <input type="file" id="fileDetailed" accept=".xlsx,.xls">
-    <div class="icon">📊</div>
-    <div class="label">Drop <strong>detailed_diary.xlsx</strong> here or click to browse</div>
-  </div>
-  <div class="file-name" id="name1"></div>
+<div class="container">
+    <h1>Daily Diary Generator</h1>
+    <p class="instructions">
+        Generate a daily diary aggregated dataset from observational data.<br>
+        Run entirely in your browser — no data is sent to any server.
+    </p>
+
+    <div class="form-group">
+        <label for="detailedFile">1. Detailed Diary Excel File (*)</label>
+        <input type="file" id="detailedFile" accept=".xlsx, .xls">
+    </div>
+
+    <div class="form-group">
+        <label for="metadataFile">2. Metadata Excel File (*)</label>
+        <input type="file" id="metadataFile" accept=".xlsx, .xls">
+    </div>
+
+    <div class="form-group">
+        <label for="country">Country</label>
+        <input type="text" id="country" placeholder="e.g. Portugal">
+    </div>
+
+    <div class="form-group">
+        <label for="group">Group</label>
+        <input type="text" id="group" placeholder="e.g. A">
+    </div>
+
+    <button id="generateBtn" class="button" onclick="generateAndDownload()">Generate Daily Diary Excel</button>
+
+    <div id="statusBox"></div>
 </div>
-
-<div class="card">
-  <h2><span class="step">2</span> Metadata Dataset</h2>
-  <div class="upload-area" id="drop2">
-    <input type="file" id="fileMetadata" accept=".xlsx,.xls">
-    <div class="icon">👥</div>
-    <div class="label">Drop <strong>Papoilas.xlsx</strong> (metadata) here or click to browse</div>
-  </div>
-  <div class="file-name" id="name2"></div>
-</div>
-
-<div class="card">
-  <h2><span class="step">3</span> Parameters</h2>
-  <div class="row">
-    <div class="field"><label for="country">Country</label>
-      <input type="text" id="country" placeholder="e.g. Portugal"></div>
-    <div class="field"><label for="group">Group</label>
-      <input type="text" id="group" placeholder="e.g. P"></div>
-  </div>
-</div>
-
-<button id="generateBtn" onclick="generate()">⚡ Generate Daily Diary</button>
-<div id="status"></div>
-<div class="footer">Runs 100% in your browser · No data uploaded to any server · No installation required</div>
 
 <script>
-// ─── Drag & drop ─────────────────────────────────────────────────────────────
-['drop1','drop2'].forEach(id => {
-  const el = document.getElementById(id);
-  el.addEventListener('dragover',  e => { e.preventDefault(); el.classList.add('dragover'); });
-  el.addEventListener('dragleave', () => el.classList.remove('dragover'));
-  el.addEventListener('drop',      e => { e.preventDefault(); el.classList.remove('dragover'); });
-});
-document.getElementById('fileDetailed').addEventListener('change', e =>
-  document.getElementById('name1').textContent = e.target.files[0]?.name ?? '');
-document.getElementById('fileMetadata').addEventListener('change', e =>
-  document.getElementById('name2').textContent = e.target.files[0]?.name ?? '');
-
-function setStatus(msg, type) {
-  const el = document.getElementById('status');
-  el.textContent = msg;
-  el.className = type;
-}
-
-// ─── Column finder (exact → starts-with → contains) ─────────────────────────
-function findCol(headers, candidates, label, required=true) {
-  const norm = h => h.toString().trim().toLowerCase();
-  const normMap = {};
-  headers.forEach(h => { normMap[norm(h)] = h; });
-  for (const c of candidates)
-    if (normMap[norm(c)] !== undefined) return normMap[norm(c)];
-  for (const c of candidates) {
-    const found = headers.find(h => norm(h).startsWith(norm(c)));
-    if (found) return found;
-  }
-  for (const c of candidates) {
-    const found = headers.find(h => norm(h).includes(norm(c)));
-    if (found) return found;
-  }
-  if (required)
-    throw new Error(`Cannot find column "${label}".\nTried: ${candidates.join(', ')}.\nColumns in file: ${headers.join(' | ')}`);
-  return null;
-}
-
-// ─── Duration helpers (HH:MM:SS ↔ seconds) ──────────────────────────────────
-function parseDurationSec(val) {
-  if (!val) return 0;
-  const s = val.toString().trim();
-  const parts = s.split(':').map(Number);
-  if (parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
-  if (parts.length === 2) return parts[0]*60 + parts[1];
-  return 0;
-}
-function fmtHHMM(totalSec) {
-  if (!totalSec) return '00:00';
-  const h = Math.floor(totalSec / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
-  const ss = Math.floor(totalSec % 60);
-  if (h > 0) return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-  return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
-}
-
-// ─── Gender encoder ──────────────────────────────────────────────────────────
-function encodeGender(g) {
-  if (!g) return null;
-  const s = g.toString().trim().toLowerCase();
-  if (s.startsWith('f')) return 1;  // female = 1
-  if (s.startsWith('m')) return 0;  // male   = 0
-  return null;
-}
-
-// ─── Age in months ──────────────────────────────────────────────────────────
-function ageMonths(birthVal, eventDate) {
-  if (!birthVal || !eventDate) return null;
-  // Try parse various date formats
-  let birth;
-  const s = birthVal.toString().trim();
-  // DD/MM/YYYY
-  const dmy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (dmy) birth = new Date(`${dmy[3]}-${dmy[2].padStart(2,'0')}-${dmy[1].padStart(2,'0')}`);
-  else birth = new Date(s);
-  const ev = new Date(eventDate);
-  if (isNaN(birth) || isNaN(ev)) return null;
-  let months = (ev.getFullYear() - birth.getFullYear()) * 12 + (ev.getMonth() - birth.getMonth());
-  if (ev.getDate() < birth.getDate()) months--;
-  return months < 0 ? null : months;
-}
-
-// ─── File reader ─────────────────────────────────────────────────────────────
-function readFile(file) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = e => res(new Uint8Array(e.target.result));
-    r.onerror = rej;
-    r.readAsArrayBuffer(file);
-  });
-}
-
-// ─── Map key ─────────────────────────────────────────────────────────────────
-const key = (...args) => args.map(a => String(a ?? '')).join('|||');
-
-// ─── Main ────────────────────────────────────────────────────────────────────
-async function generate() {
-  const fileD   = document.getElementById('fileDetailed').files[0];
-  const fileM   = document.getElementById('fileMetadata').files[0];
-  const country = document.getElementById('country').value.trim();
-  const group   = document.getElementById('group').value.trim();
-
-  if (!fileD)   return setStatus('⚠️ Please upload the Detailed Behaviour dataset.','error');
-  if (!fileM)   return setStatus('⚠️ Please upload the Metadata dataset.','error');
-  if (!country) return setStatus('⚠️ Please enter a Country.','error');
-  if (!group)   return setStatus('⚠️ Please enter a Group.','error');
-
-  document.getElementById('generateBtn').disabled = true;
-  setStatus('⏳ Reading files…','info');
-
-  try {
-    const [bytesD, bytesM] = await Promise.all([readFile(fileD), readFile(fileM)]);
-    const wbD = XLSX.read(bytesD, {type:'array', cellDates:false, raw:false});
-    const wbM = XLSX.read(bytesM, {type:'array', cellDates:false, raw:false});
-
-    const detailed = XLSX.utils.sheet_to_json(wbD.Sheets[wbD.SheetNames[0]], {defval:null,raw:false});
-    const metadata = XLSX.utils.sheet_to_json(wbM.Sheets[wbM.SheetNames[0]], {defval:null,raw:false});
-
-    if (!detailed.length) throw new Error('Detailed file is empty.');
-    if (!metadata.length) throw new Error('Metadata file is empty.');
-
-    const dH = Object.keys(detailed[0]);
-    const mH = Object.keys(metadata[0]);
-
-    setStatus('⏳ Detecting columns…','info');
-
-    // ── Detailed columns ──
-    const C = {
-      date:      findCol(dH, ['date','Date','data','Data'], 'Date'),
-      actor:     findCol(dH, ['actor','Actor'], 'Actor'),
-      receiver:  findCol(dH, ['receiver','Receiver','recetora'], 'Receiver'),
-      behaviour: findCol(dH, ['target behaviours','target behavior','behaviours','comportamento'], 'Target Behaviours'),
-      contact:   findCol(dH, ['C =','contact play'], 'C/NC contact type', false),
-      object:    findCol(dH, ['OB =','play with object'], 'OB/NOB object', false),
-      playtype:  findCol(dH, ['PF =','play fighting'], 'PF/L/Tk/O play type', false),
-      dyad:      findCol(dH, ['dyad','Dyad','díade'], 'Dyad', false),
-      duration:  findCol(dH, ['Duration','duration','Duração'], 'Duration', false),
+    // Behavior mapping logic based on detailed specifications
+    
+    const BEHAVIOR_MAP = {
+        'aggression': 'total number of daily aggression of the dyad',
+        'social play interaction': 'total number of daily social play interaction of the dyad',
+        'social play with body contact': 'total number of social play with body contact of the dyad',
+        'social play without body contact': 'total number of social play without body contact of the dyad',
+        'social play with object': 'total number of social play with object of the dyad',
+        'social play without object': 'total number of social play without object of the dyad',
+        'play fighting': 'total number of play fighting of the dyad',
+        'locomotor/acrobatic play': 'total number of locomotor/acrobatic play of the dyad',
+        'tickle': 'total number of tickle of the dyad',
+        'other': 'total number of other of the dyad',
+        'body contact': 'total number of body contact interactions of dyad',
+        'food sharing': 'total number of food sharing of dyad',
+        'other affiliation': 'total number of other affiliation of dyad',
+        
+        // Solitary
+        'solitary play': 'total number of daily solitary play of child',
+        'solitary play with object': 'total number of solitary play with object',
+        'solitary play without object': 'total number of solitary play without object'
     };
+    
+    const AGGREGATION_COLUMNS = [
+        'total number of daily aggression of the dyad',
+        'total number of daily social play interaction of the dyad',
+        'total number of social play with body contact of the dyad',
+        'total number of social play without body contact of the dyad',
+        'total number of social play with object of the dyad',
+        'total number of social play without object of the dyad',
+        'total number of play fighting of the dyad',
+        'total number of locomotor/acrobatic play of the dyad',
+        'total number of tickle of the dyad',
+        'total number of other of the dyad',
+        'total number of daily solitary play of child',
+        'total number of solitary play with object',
+        'total number of solitary play without object',
+        'total number of body contact interactions of dyad',
+        'total number of food sharing of dyad',
+        'total number of other affiliation of dyad'
+    ];
 
-    // ── Metadata columns ──
-    const MC = {
-      name:   findCol(mH, ['Name','name','nome','Nome'], 'Name'),
-      gender: findCol(mH, ['Gender','gender','Género','genero','Sex','sex','Sexo'], 'Gender'),
-      birth:  findCol(mH, ['Data de nascimento','birthdate','birth date','DOB','nascimento'], 'Birth date'),
-    };
+    const EXPECTED_OUTPUT_ORDER = [
+        "date", "actor", "receiver", "dyad (AB is different from BA)", 
+        "actor sex (male=0, female=1)", "receiver sex (male=0, female=1)", 
+        "actor age (months)", "receiver age (months)", 
+        "kinship (no kin=0, siblings =1, other kinship relation (cousins) = 2) if you do not have data NA (not applicable)",
+        "daily observation minutes of actor (from scan)", "daily observation minutes of receiver (from scan)", 
+        "daily observation minutes for dyad (from scan)",
+        ...AGGREGATION_COLUMNS,
+        "country", "group", "note"
+    ];
 
-    setStatus('⏳ Building lookups from metadata…','info');
-
-    // Build lookups by Name (case-insensitive)
-    const genderLookup = {}, birthLookup = {};
-    for (const row of metadata) {
-      const nm = (row[MC.name] ?? '').toString().trim().toLowerCase();
-      if (!nm) continue;
-      genderLookup[nm] = encodeGender(row[MC.gender]);
-      birthLookup[nm]  = row[MC.birth];
+    function setStatus(msg, type) {
+        const box = document.getElementById('statusBox');
+        box.className = '';
+        box.classList.add('status-' + type);
+        box.innerText = msg;
+    }
+    
+    function parseDate(val) {
+        if (!val) return null;
+        if (val instanceof Date) return val;
+        if (typeof val === 'number') {
+            return new Date(Math.round((val - 25569) * 86400 * 1000));
+        }
+        let str = String(val).trim();
+        // Try DD/MM/YYYY
+        let parts = str.split('/');
+        if (parts.length === 3) {
+            let d = parseInt(parts[0], 10);
+            let m = parseInt(parts[1], 10) - 1;
+            let y = parseInt(parts[2], 10);
+            return new Date(y, m, d);
+        }
+        // Try YYYY-MM-DD
+        parts = str.split('-');
+        if (parts.length === 3) {
+            return new Date(str);
+        }
+        let d = new Date(val);
+        return isNaN(d.getTime()) ? null : d;
     }
 
-    setStatus('⏳ Processing rows…','info');
+    function formatExcelDate(val) {
+        if (!val) return "";
+        let d = parseDate(val);
+        if (!d) return String(val);
+        let dd = String(d.getDate()).padStart(2, '0');
+        let mm = String(d.getMonth() + 1).padStart(2, '0');
+        let yyyy = d.getFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+    }
+    
+    const REFERENCE_DATE = "13/10/2025";
+    
+    function calculateAgeMonths(birthDateStr) {
+        const b = parseDate(birthDateStr);
+        const e = parseDate(REFERENCE_DATE);
+        if (!b || !e) return "";
+        
+        let months = (e.getFullYear() - b.getFullYear()) * 12 + (e.getMonth() - b.getMonth());
+        if (e.getDate() < b.getDate()) {
+            months--;
+        }
+        return months >= 0 ? months : 0;
+    }
+    
+    function durationToSeconds(val) {
+        if (val === undefined || val === null || val === "" || val === 0) return 0;
+        
+        if (typeof val === 'number') {
+            // Excel serial time: 1.0 = 24 hours. 
+            // Most interaction durations are short (e.g., < 1 hour = 0.0416).
+            // If val is > 1.0, it's likely raw seconds or minutes.
+            if (val < 1.0) {
+                return Math.round(val * 86400);
+            }
+            // If it's a large integer, assume seconds. 
+            // If it's something like 16.20, it's ambiguous, but let's treat as seconds for now.
+            return Math.round(val);
+        }
+        
+        let str = String(val).trim().replace(',', '.'); // Handle commas too
+        if (!str) return 0;
+        
+        // Handle min.sec or HH.MM.SS (using dot or colon)
+        let separator = str.includes(':') ? ':' : (str.includes('.') ? '.' : null);
+        
+        if (separator) {
+            let parts = str.split(separator).map(p => {
+                let n = parseInt(p, 10);
+                return isNaN(n) ? 0 : n;
+            });
+            
+            if (parts.length === 2) {
+                // min:sec or HH:MM
+                return parts[0] * 60 + parts[1];
+            } else if (parts.length === 3) {
+                // hh:mm:ss
+                return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            }
+        }
+        
+        // Try parsing as a plain number (seconds)
+        let n = parseFloat(str);
+        return isNaN(n) ? 0 : Math.round(n);
+    }
 
-    // We accumulate per-dyad counters in a Map
-    // Key: date|actor|receiver|dyad
-    const dyadMap = new Map();   // social play + aggression rows
-    const actorDurMap  = new Map(); // date|actor → total seconds
-    const receiverDurMap = new Map();
-    const dyadDurMap   = new Map(); // date|dyad → total seconds
-    // Solitary play per actor per day
-    const solitaryMap  = new Map(); // date|actor → {total, withObj, noObj}
+    function formatSeconds(totalSeconds) {
+        if (!totalSeconds) return "00:00";
+        let m = Math.floor(totalSeconds / 60);
+        let s = totalSeconds % 60;
+        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
 
-    for (const row of detailed) {
-      const dateRaw = (row[C.date] ?? '').toString().trim();
-      if (!dateRaw) continue;
-
-      const actorRaw    = (row[C.actor]    ?? '').toString().trim();
-      const receiverRaw = (row[C.receiver] ?? '').toString().trim();
-      const behav       = (row[C.behaviour]?? '').toString().trim().toLowerCase();
-      const contact     = C.contact  ? (row[C.contact]  ?? '').toString().trim().toUpperCase() : '';
-      const objType     = C.object   ? (row[C.object]   ?? '').toString().trim().toUpperCase() : '';
-      const playType    = C.playtype ? (row[C.playtype] ?? '').toString().trim().toUpperCase() : '';
-      const durSec      = C.duration ? parseDurationSec(row[C.duration]) : 0;
-
-      const actorName    = actorRaw.toLowerCase();
-      const receiverName = receiverRaw.toLowerCase();
-
-      // ── Solitary play ──
-      if (behav.includes('solpl') || behav === 'solitary play') {
-        const sk = key(dateRaw, actorName);
-        if (!solitaryMap.has(sk)) solitaryMap.set(sk, {total:0, obj:0, noObj:0});
-        const s = solitaryMap.get(sk);
-        s.total++;
-        if (objType === 'OB') s.obj++; else s.noObj++;
-        // Duration for actor
-        const ak = key(dateRaw, actorName);
-        actorDurMap.set(ak, (actorDurMap.get(ak)||0) + durSec);
-        continue; // solitary rows don't create dyad rows
-      }
-
-      // Skip rows with no real receiver
-      if (!receiverRaw || receiverRaw === '*' || receiverName === 'nan') continue;
-
-      // Build dyad label
-      let dyadLabel = '';
-      if (C.dyad && row[C.dyad] && row[C.dyad].toString().trim() !== '*') {
-        dyadLabel = row[C.dyad].toString().trim();
-      } else {
-        dyadLabel = `${actorRaw}-${receiverRaw}`;
-      }
-
-      const dk = key(dateRaw, actorName, receiverName, dyadLabel);
-
-      if (!dyadMap.has(dk)) {
-        dyadMap.set(dk, {
-          date: dateRaw, actor: actorRaw, receiver: receiverRaw, dyad: dyadLabel,
-          ag:0,
-          socialTotal:0, socialC:0, socialNC:0, socialOB:0, socialNOB:0,
-          pf:0, L:0, tk:0, other:0,
-          bc:0, fs:0, aff:0,
+    function parseExcelMetadata(ws) {
+        // Use raw values to get Excel serial dates if any
+        const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+        const metadataMap = {}; // Key: name or code (converted to string lower)
+        
+        json.forEach(row => {
+            let code = null, name = null, sex = null, birth = null;
+            for(let key in row) {
+                const kLower = key.toLowerCase();
+                const val = row[key];
+                
+                if(kLower.includes('code') || kLower === 'id' || kLower === 'subject') code = String(val).trim().toLowerCase();
+                if(kLower === 'name' || kLower === 'nº') name = String(val).trim().toLowerCase();
+                if((kLower === 'sex' || kLower === 'gender') && val !== "") sex = String(val).trim().toLowerCase();
+                if((kLower.includes('birth') || kLower.includes('dob') || kLower.includes('nascimento')) && val !== "") birth = val;
+            }
+            
+            let sexEncoded = "";
+            if(sex === 'm' || sex === 'male') sexEncoded = 0;
+            if(sex === 'f' || sex === 'female') sexEncoded = 1;
+            
+            const meta = { sex: sexEncoded, birth: birth };
+            if (code) metadataMap[code] = meta;
+            if (name) metadataMap[name] = meta;
         });
-      }
-      const d = dyadMap.get(dk);
-
-      // Duration accumulation
-      const akey = key(dateRaw, actorName);
-      const rkey = key(dateRaw, receiverName);
-      const dyKey = key(dateRaw, dyadLabel);
-      actorDurMap.set(akey,  (actorDurMap.get(akey)||0)  + durSec);
-      receiverDurMap.set(rkey,(receiverDurMap.get(rkey)||0)+durSec);
-      dyadDurMap.set(dyKey,  (dyadDurMap.get(dyKey)||0)  + durSec);
-
-      // Classify behaviour
-      if (behav.includes('ag') || behav.includes('aggr')) {
-        d.ag++;
-      } else if (behav.includes('socpl') || behav.includes('social play')) {
-        d.socialTotal++;
-        if (contact === 'C')   d.socialC++;
-        if (contact === 'NC')  d.socialNC++;
-        if (objType === 'OB')  d.socialOB++;
-        if (objType === 'NOB') d.socialNOB++;
-        if (playType === 'PF') d.pf++;
-        else if (playType === 'L')  d.L++;
-        else if (playType === 'TK'||playType === 'Tk') d.tk++;
-        else if (playType === 'O')  d.other++;
-      } else if (behav.includes('bc') || behav.includes('body contact')) {
-        d.bc++;
-      } else if (behav.includes('fs') || behav.includes('food sharing')) {
-        d.fs++;
-      } else if (behav.includes('aff') || behav.includes('affiliation')) {
-        d.aff++;
-      }
+        return metadataMap;
     }
 
-    setStatus('⏳ Building output…','info');
+    async function generateAndDownload() {
+        const detInput = document.getElementById('detailedFile');
+        const metaInput = document.getElementById('metadataFile');
+        const country = document.getElementById('country').value.trim();
+        const group = document.getElementById('group').value.trim();
 
-    if (!dyadMap.size) throw new Error('No valid social interactions found. Check that actor and receiver columns have data.');
+        if (!detInput.files.length) {
+            return setStatus("Error: Please select the Detailed Diary Excel file.", "error");
+        }
+        if (!metaInput.files.length) {
+            return setStatus("Error: Please select the Metadata Excel file.", "error");
+        }
 
-    const rows = [];
-    for (const [, d] of dyadMap) {
-      const an = d.actor.toLowerCase();
-      const rn = d.receiver.toLowerCase();
-      const dyadDurSec = dyadDurMap.get(key(d.date, d.dyad)) || 0;
-      const actSec     = actorDurMap.get(key(d.date, an)) || 0;
-      const recSec     = receiverDurMap.get(key(d.date, rn)) || 0;
+        setStatus("Processing data...", "loading");
+        const btn = document.getElementById('generateBtn');
+        btn.disabled = true;
 
-      // Solitary play for this actor on this date
-      const sl = solitaryMap.get(key(d.date, an)) || {total:0, obj:0, noObj:0};
+        try {
+            // Read metadata
+            let file = metaInput.files[0];
+            let data = await file.arrayBuffer();
+            let workbook = XLSX.read(data, {cellDates: false});
+            let metadataMap = parseExcelMetadata(workbook.Sheets[workbook.SheetNames[0]]);
 
-      rows.push({
-        'date': d.date,
-        'actor': d.actor,
-        'receiver': d.receiver,
-        'dyad (AB is different from BA)': d.dyad,
-        'actor sex (male=0, female=1)': genderLookup[an] ?? null,
-        'receiver sex (male=0, female=1)': genderLookup[rn] ?? null,
-        'actor age (months)': ageMonths(birthLookup[an], d.date),
-        'receiver age (months)': ageMonths(birthLookup[rn], d.date),
-        'kinship (no kin=0, siblings =1, other kinship relation (cousins) = 2) if you do not have data NA (not applicable)': null,
-        'daily observation minutes of actor (from scan)': fmtHHMM(actSec),
-        'daily observation minutes of receiver (from scan)': fmtHHMM(recSec),
-        'daily observation minutes for dyad (from scan)': fmtHHMM(dyadDurSec),
-        'total number of daily aggression of the dyad': d.ag,
-        'total number of daily social play interaction of the dyad': d.socialTotal,
-        'total number of social play with body contact of the dyad': d.socialC,
-        'total number of social play without body contact of the dyad': d.socialNC,
-        'total number of social play with object of the dyad': d.socialOB,
-        'total number of social play without object of the dyad': d.socialNOB,
-        'total number of play fighting  of the dyad': d.pf,
-        'total number of locomotor/acrobatic play  of the dyad': d.L,
-        'total number of tickle of the dyad': d.tk,
-        'total number of other of the dyad': d.other,
-        'total number of daily solitary play of child': sl.total,
-        'total number of solitary play with object': sl.obj,
-        'total number of solitary play without object': sl.noObj,
-        'total number of body contact interactions of dyad': d.bc,
-        'total number of food sharing of dyad': d.fs,
-        'total number of other affiliation of dyad': d.aff,
-        'country': country,
-        'group': group,
-      });
+            // Read detailed
+            file = detInput.files[0];
+            data = await file.arrayBuffer();
+            workbook = XLSX.read(data, {cellDates: false});
+            const rawDiary = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
+
+            // Group data by Date, Actor, Receiver
+            const grouped = {};
+            // Track solitary explicitly for each child/day
+            const solitaryData = {}; 
+
+            rawDiary.forEach(row => {
+                let date=null, actor=null, receiver=null, kinship="";
+                let bPrimary="", bContact="", bObject="", bType="";
+                let duration="";
+                
+                // Track if any cell in this row explicitly has "solitary" 
+                let hasSolitaryText = false;
+                
+                for(let key in row) {
+                    const kL = key.toLowerCase().trim();
+                    const val = row[key];
+                    if (val === "") continue;
+                    
+                    const strVal = String(val).trim();
+                    if (strVal.toLowerCase() === 'solitary' || strVal.toLowerCase() === 'solpl') {
+                        hasSolitaryText = true;
+                    }
+                    
+                    if(kL.startsWith('date') || kL.startsWith('data')) date = val;
+                    else if(kL.startsWith('actor') && !kL.includes('minute') && !kL.includes('sex') && !kL.includes('age')) actor = strVal;
+                    else if(kL.startsWith('receiver') && !kL.includes('minute') && !kL.includes('sex') && !kL.includes('age')) receiver = strVal;
+                    else if(kL === 'duration') duration = val; // Exact match priority
+                    else if(!duration && (kL.includes('duration') || kL.includes('minute'))) duration = val;
+                    else if(kL === 'kinship') kinship = strVal;
+                    else if(kL.includes('target behav') || kL.includes('behaviour')) bPrimary = strVal.toLowerCase();
+                    else if(kL.startsWith('c ') || kL.startsWith('c=')) bContact = strVal.toUpperCase();
+                    else if(kL.startsWith('ob ') || kL.startsWith('ob=')) bObject = strVal.toUpperCase();
+                    else if(kL.startsWith('pf ') || kL.startsWith('pf=')) bType = strVal.toUpperCase();
+                }
+
+                if(!date || !actor) return; // Skip invalid rows
+                
+                let isSolitary = (bPrimary === 'solpl' || bPrimary.includes('solitary') || hasSolitaryText);
+                const seconds = durationToSeconds(duration);
+                // Preserve original date string if it's already a formatted string, otherwise format it
+                const formattedDate = (typeof date === 'string' && date.includes('/')) ? date : formatExcelDate(date);
+
+                if (isSolitary) {
+                    const rKey = formattedDate + "_" + actor;
+                    if (!solitaryData[rKey]) {
+                        solitaryData[rKey] = {
+                            date: formattedDate, actor, durationSeconds: 0, kinship, counts: {}
+                        };
+                        AGGREGATION_COLUMNS.forEach(c => solitaryData[rKey].counts[c] = 0);
+                    }
+                    
+                    solitaryData[rKey].durationSeconds += seconds;
+                    
+                    let cRef = solitaryData[rKey].counts;
+                    let cTot = 'total number of daily solitary play of child';
+                    cRef[cTot] += 1;
+                    
+                    if(bObject === 'OB') {
+                        let col = 'total number of solitary play with object';
+                        cRef[col] += 1;
+                    } else if(bObject === 'NOB' || bObject === 'NC') { // Handle NOB or potential mislabels
+                        let col = 'total number of solitary play without object';
+                        cRef[col] += 1;
+                    }
+                } else if (receiver && receiver.toLowerCase() !== 'na' && receiver !== '') {
+                    // Dyadic interaction
+                    const k1 = formattedDate + "_" + actor + "_" + receiver;
+                    if (!grouped[k1]) {
+                        grouped[k1] = {
+                            date: formattedDate, actor, receiver, durationSeconds: 0, kinship, counts: {}
+                        };
+                        AGGREGATION_COLUMNS.forEach(c => grouped[k1].counts[c] = 0);
+                    }
+                    
+                    grouped[k1].durationSeconds += seconds;
+                    
+                    let cRef = grouped[k1].counts;
+                    
+                    if(bPrimary === 'ag' || bPrimary.includes('aggression')) {
+                        let col = 'total number of daily aggression of the dyad';
+                        cRef[col] += 1;
+                    } else if(bPrimary === 'bc' || bPrimary.includes('body contact')) {
+                        let col = 'total number of body contact interactions of dyad';
+                        cRef[col] += 1;
+                    } else if(bPrimary === 'fs' || bPrimary.includes('food sharing')) {
+                        let col = 'total number of food sharing of dyad';
+                        cRef[col] += 1;
+                    } else if(bPrimary === 'aff' || bPrimary.includes('affiliation') || 
+                              bPrimary.includes('embrace') || bPrimary.includes('caress') || 
+                              bPrimary.includes('consolatory')) {
+                        let col = 'total number of other affiliation of dyad';
+                        cRef[col] += 1;
+                    } else if(bPrimary === 'socpl' || bPrimary.includes('social play')) {
+                        let col = 'total number of daily social play interaction of the dyad';
+                        cRef[col] += 1;
+                        
+                        if(bContact === 'C') {
+                            let c1 = 'total number of social play with body contact of the dyad';
+                            cRef[c1] += 1;
+                        } else if(bContact === 'NC') {
+                            let c1 = 'total number of social play without body contact of the dyad';
+                            cRef[c1] += 1;
+                        }
+                        
+                        if(bObject === 'OB') {
+                            let c1 = 'total number of social play with object of the dyad';
+                            cRef[c1] += 1;
+                        } else if(bObject === 'NOB') {
+                            let c1 = 'total number of social play without object of the dyad';
+                            cRef[c1] += 1;
+                        }
+                        
+                        if(bType === 'PF') {
+                            let c1 = 'total number of play fighting of the dyad';
+                            cRef[c1] += 1;
+                        } else if(bType === 'L') {
+                            let c1 = 'total number of locomotor/acrobatic play of the dyad';
+                            cRef[c1] += 1;
+                        } else if(bType === 'TK') {
+                            let c1 = 'total number of tickle of the dyad';
+                            cRef[c1] += 1;
+                        } else if(bType === 'O') {
+                            let c1 = 'total number of other of the dyad';
+                            cRef[c1] += 1;
+                        }
+                    }
+                }
+            });
+
+            // Format Output Rows
+            const dyadicRows = [];
+            const solitaryRows = [];
+            
+            // Build dyadic rows first
+            for (let key in grouped) {
+                let item = grouped[key];
+                
+                let theDuration = item.duration;
+
+                let metaA = metadataMap[item.actor.toLowerCase()] || {};
+                let metaR = metadataMap[item.receiver.toLowerCase()] || {};
+
+                let aAge = calculateAgeMonths(metaA.birth);
+                let rAge = calculateAgeMonths(metaR.birth);
+
+                let rowOut = {};
+                rowOut["date"] = item.date;
+                rowOut["actor"] = item.actor;
+                rowOut["receiver"] = item.receiver;
+                rowOut["dyad (AB is different from BA)"] = item.actor + "-" + item.receiver;
+                rowOut["actor sex (male=0, female=1)"] = metaA.sex !== undefined ? metaA.sex : "";
+                rowOut["receiver sex (male=0, female=1)"] = metaR.sex !== undefined ? metaR.sex : "";
+                rowOut["actor age (months)"] = aAge;
+                rowOut["receiver age (months)"] = rAge;
+                rowOut["kinship (no kin=0, siblings =1, other kinship relation (cousins) = 2) if you do not have data NA (not applicable)"] = item.kinship || "NA";
+                
+                const timeStr = formatSeconds(item.durationSeconds);
+                rowOut["daily observation minutes of actor (from scan)"] = timeStr;
+                rowOut["daily observation minutes of receiver (from scan)"] = timeStr;
+                rowOut["daily observation minutes for dyad (from scan)"] = timeStr;
+
+                AGGREGATION_COLUMNS.forEach(c => rowOut[c] = item.counts[c]);
+                
+                rowOut["country"] = country;
+                rowOut["group"] = group;
+                rowOut["note"] = "";
+
+                dyadicRows.push(rowOut);
+            }
+
+            // Build solitary rows
+            for (let key in solitaryData) {
+                let item = solitaryData[key];
+                
+                let theDuration = item.duration;
+                let metaA = metadataMap[item.actor.toLowerCase()] || {};
+                let aAge = calculateAgeMonths(metaA.birth);
+
+                let rowOut = {};
+                rowOut["date"] = item.date;
+                rowOut["actor"] = item.actor;
+                rowOut["receiver"] = "";
+                rowOut["dyad (AB is different from BA)"] = ""; // Solitary has blank dyad
+                rowOut["actor sex (male=0, female=1)"] = metaA.sex !== undefined ? metaA.sex : "";
+                rowOut["receiver sex (male=0, female=1)"] = "";
+                rowOut["actor age (months)"] = aAge;
+                rowOut["receiver age (months)"] = "";
+                rowOut["kinship (no kin=0, siblings =1, other kinship relation (cousins) = 2) if you do not have data NA (not applicable)"] = item.kinship || "NA";
+                
+                const timeStr = formatSeconds(item.durationSeconds);
+                rowOut["daily observation minutes of actor (from scan)"] = timeStr;
+                rowOut["daily observation minutes of receiver (from scan)"] = timeStr;
+                rowOut["daily observation minutes for dyad (from scan)"] = timeStr;
+
+                AGGREGATION_COLUMNS.forEach(c => rowOut[c] = item.counts[c]);
+                
+                rowOut["country"] = country;
+                rowOut["group"] = group;
+                rowOut["note"] = "";
+
+                solitaryRows.push(rowOut);
+            }
+
+            // Sort dyadic rows by date, then actor
+            dyadicRows.sort((a,b) => {
+                if (a.date !== b.date) return (a.date > b.date ? 1 : -1);
+                if (a.actor !== b.actor) return (a.actor > b.actor ? 1 : -1);
+                return (a.receiver > b.receiver ? 1 : -1);
+            });
+            
+            // Sort solitary rows by date, then actor
+            solitaryRows.sort((a,b) => {
+                if (a.date !== b.date) return (a.date > b.date ? 1 : -1);
+                return (a.actor > b.actor ? 1 : -1);
+            });
+            
+            // Combine with solitary rows always at the end
+            const outputRows = [...dyadicRows, ...solitaryRows];
+
+            // Enforce exact column order
+            const finalSheetData = [EXPECTED_OUTPUT_ORDER]; // Header row
+            outputRows.forEach(r => {
+                const arr = EXPECTED_OUTPUT_ORDER.map(col => r[col] !== undefined ? r[col] : "");
+                finalSheetData.push(arr);
+            });
+
+            // Export to Excel
+            const newWb = XLSX.utils.book_new();
+            const newWs = XLSX.utils.aoa_to_sheet(finalSheetData);
+            XLSX.utils.book_append_sheet(newWb, newWs, "Daily Diary");
+            XLSX.writeFile(newWb, "daily_diary.xlsx");
+
+            setStatus("Success! The daily_diary.xlsx file has been generated and downloaded.", "success");
+        } catch(err) {
+            console.error(err);
+            setStatus("An error occurred during processing: " + err.message, "error");
+        } finally {
+            btn.disabled = false;
+        }
     }
-
-    const ws  = XLSX.utils.json_to_sheet(rows);
-    const wb2 = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb2, ws, 'Daily Diary');
-    XLSX.writeFile(wb2, 'daily_diary_output.xlsx');
-
-    setStatus(`✅ Done! ${rows.length} dyad rows generated and downloaded as daily_diary_output.xlsx`, 'success');
-
-  } catch(err) {
-    setStatus(`❌ Error:\n${err.message}`, 'error');
-    console.error(err);
-  } finally {
-    document.getElementById('generateBtn').disabled = false;
-  }
-}
 </script>
+
 </body>
 </html>
